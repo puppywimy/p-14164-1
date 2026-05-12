@@ -1,16 +1,19 @@
 package com.back.domain.wiseSaying.wiseSaying.entity;
 
 import jakarta.persistence.Entity;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-//@Entity
+import static jakarta.persistence.GenerationType.IDENTITY;
+
+@Entity
 @Getter
-@Setter
 @NoArgsConstructor
 public class WiseSaying {
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
     private int id;
     private String content;
     private String author;
