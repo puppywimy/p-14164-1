@@ -3,20 +3,20 @@ package com.back.domain.wiseSaying.wiseSaying.controller;
 import com.back.domain.wiseSaying.wiseSaying.entity.WiseSaying;
 import com.back.domain.wiseSaying.wiseSaying.service.WiseSayingService;
 import lombok.RequiredArgsConstructor;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
-public class wiseSayingController {
+public class WiseSayingController {
     private final WiseSayingService wiseSayingService;
 
     @GetMapping("/wiseSayings/write")
@@ -25,15 +25,17 @@ public class wiseSayingController {
             @RequestParam(defaultValue = "내용") String content,
             @RequestParam(defaultValue = "작가") String author
     ) {
-        if (content.isBlank())
-            throw new IllegalArgumentException("Content cannot be null or blank.");
+        if (content.isBlank()) {
+            throw new IllegalArgumentException("Content cannot be null or blank");
+        }
 
-        if (author.isBlank())
-            throw new IllegalArgumentException("Content cannot be null or blank.");
+        if (author.isBlank()) {
+            throw new IllegalArgumentException("Author cannot be null or blank");
+        }
 
         WiseSaying wiseSaying = wiseSayingService.write(content, author);
 
-        return "%d번 명언이 작성되었습니다.".formatted(wiseSaying.getId());
+        return "%d번 명언이 생성되었습니다.".formatted(wiseSaying.getId());
     }
 
     @GetMapping("/wiseSayings")
@@ -54,13 +56,27 @@ public class wiseSayingController {
     @GetMapping("/wiseSayings/{id}")
     @ResponseBody
     public String detail(@PathVariable int id) {
-        WiseSaying wiseSaying = wiseSayingService.findById(id).get(); // delete 처럼 처리하는 게 더 낫다.
+        WiseSaying wiseSaying = wiseSayingService.findById(id).get();
+
+        // 마크다운 파서 생성
+        Parser parser = Parser.builder().build();
+
+        // 문자열을 파싱해서 Node 트리 구조로 변환
+        Node document = parser.parse(wiseSaying.getContent());
+
+        // HTML 렌더러 생성
+        HtmlRenderer renderer = HtmlRenderer.builder().build();
+
+        // Node를 HTML 문자열로 렌더링
+        String html = renderer.render(document);
 
         return """
-                <h1>명언 : %s</h1>
+                <h1>명언 본문</h1>
+                
                 <div>번호 : %d</div>
                 <div>작가 : %s</div>
-                """.formatted(wiseSaying.getContent(), wiseSaying.getId(), wiseSaying.getAuthor());
+                <div>%s</div>
+                """.formatted(wiseSaying.getId(), wiseSaying.getAuthor(), html);
     }
 
     @GetMapping("/wiseSayings/{id}/delete")
