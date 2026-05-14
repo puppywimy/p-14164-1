@@ -2,10 +2,8 @@ package com.back.domain.wiseSaying.wiseSaying.controller;
 
 import com.back.domain.wiseSaying.wiseSaying.entity.WiseSaying;
 import com.back.domain.wiseSaying.wiseSaying.service.WiseSayingService;
+import com.back.standard.util.service.MarkdownService;
 import lombok.RequiredArgsConstructor;
-import org.commonmark.node.Node;
-import org.commonmark.parser.Parser;
-import org.commonmark.renderer.html.HtmlRenderer;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,8 +16,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WiseSayingController {
     private final WiseSayingService wiseSayingService;
-    private final HtmlRenderer htmlRenderer;
-    private final Parser parser;
+    private final MarkdownService markdownService;
 
     @GetMapping("/wiseSayings/write")
     @ResponseBody
@@ -60,11 +57,7 @@ public class WiseSayingController {
     public String detail(@PathVariable int id) {
         WiseSaying wiseSaying = wiseSayingService.findById(id).get();
 
-        // 문자열을 파싱해서 Node 트리 구조로 변환
-        Node document = parser.parse(wiseSaying.getContent());
-
-        // Node를 HTML 문자열로 렌더링
-        String html = htmlRenderer.render(document);
+        String html = markdownService.toHtml(wiseSaying.getContent());
 
         return """
                 <h1>명언 본문</h1>
